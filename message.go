@@ -22,10 +22,42 @@ type Message struct {
 	Messages []*DialogMessage `json:"items"`
 }
 
+type PersonalMessages struct {
+	Count    int                `json:"count"`
+	Messages []*PersonalMessage `json:"items"`
+	Profiles []*User            `json:"profiles"`
+}
+
 type Item struct {
 	Message *DialogMessage `json:"message"`
 	InRead  int            `json:"in_read"`
 	OutRead int            `json:"out_read"`
+}
+
+type PersonalMessage struct {
+	Id                int                  `json:"id"`
+	Date              int                  `json:"date"`
+	PeerId            int                  `json:"peer_id"`
+	FromId            int                  `json:"from_id"`
+	Text              string               `json:"text"`
+	RandomId          int                  `json:"random_id"`
+	Ref               string               `json:"ref"`
+	RefSource         string               `json:"RefSource"`
+	Attachments       []*MessageAttachment `json:"attachment"`
+	Important         bool                 `json:"important"`
+	geo               Geo                  `json:"geo"`
+	Payload           string               `json:"payload"`
+	ForwardedMessages []*ForwardedMessage  `json:"fwd_message"`
+	ReplyMessage      *ForwardedMessage    `json:"reply_message"`
+	ChatAction        ChatAction           `json:"action"`
+	AdminAuthorId     int                  `json:"admin_author_id"`
+	ConvMsgId         int                  `json:"conversation_message_id"`
+	IsCropped         bool                 `json:"is_cropped"`
+	MembersCount      int                  `json:"members_count"`
+	UpdateTime        int                  `json:"update_time"`
+	WasListened       int                  `json:"was_listened"`
+	PinnedAt          int                  `json:"pinned_at"`
+	MessageTag        string               `json:"message_tag"`
 }
 
 type DialogMessage struct {
@@ -113,14 +145,49 @@ type LinkAttachment struct {
 }
 
 type Keyboard struct {
-	OneTime 	bool		`json:"one_time"`
-	Buttons		[][]Button 	`json:"buttons"`
-	Inline		bool 		`json:"inline"`
+	OneTime bool       `json:"one_time"`
+	Buttons [][]Button `json:"buttons"`
+	Inline  bool       `json:"inline"`
 }
 
 type Button struct {
-	Action		map[string]string	`json:"action"`
-	Color		string				`json:"color"`
+	Action map[string]string `json:"action"`
+	Color  string            `json:"color"`
+}
+
+type ChatAction struct {
+	Type     string `json:"type"`
+	MemberId int64  `json:"member_id"`
+	Text     string `json:"text"`
+	Email    string `json:"email"`
+	Photo    struct {
+		Photo50  string `json:"photo_50"`
+		Photo100 string `json:"photo_100"`
+		Photo200 string `json:"photo_200"`
+	}
+}
+
+type Geo struct {
+	Type        string        `json:"type"`
+	Coordinates *[]Coordinate `json:"coordinates"`
+	Place       Place         `json:"place"`
+	Showmap     int           `json:"showmap"`
+}
+
+type Coordinate struct {
+	Latitude  float32 `json:"latitude"`
+	Longitude float32 `json:"longitude"`
+}
+
+type Place struct {
+	Id        int     `json:"id"`
+	Title     string  `json:"title"`
+	Latitude  float32 `json:"latitude"`
+	Longitude float32 `json:"longitude"`
+	Created   int32   `json:"created"`
+	Icon      string  `json:"icon"`
+	Country   string  `json:"country"`
+	City      string  `json:"city"`
 }
 
 func (client *VKClient) DialogsGet(count int, params url.Values) (*Dialog, error) {
@@ -261,4 +328,26 @@ func (client *VKClient) MessagesSetActivity(user int, params url.Values) error {
 	}
 
 	return nil
+}
+
+func (client *VKClient) GetByConversationMessageId(peerId int, conversationMessageIds []int, extended bool, fields []string, groupId int) (int, []*PersonalMessage, error) {
+	params := url.Values{}
+	ids := ArrayToStr(conversationMessageIds)
+	params.Add("peer_id", strconv.Itoa(peerId))
+	params.Add("conversation_message_ids", ids)
+	params.Add("extended", strconv.Itoa(BoolToInt(extended)))
+	if len(fields) > 0 {
+		params.Add("fields", strings.Join(fields, ","))
+	}
+	params.Add("group_id", strconv.Itoa(groupId))
+
+	resp, err := client.MakeRequest("messages.getByConversationMessageId", params)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	var message *PersonalMessages
+	json.Unmarshal(resp.Response, &message)
+
+	return message.Count, message.Messages, nil
 }
