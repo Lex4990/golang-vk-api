@@ -330,7 +330,7 @@ func (client *VKClient) MessagesSetActivity(user int, params url.Values) error {
 	return nil
 }
 
-func (client *VKClient) GetByConversationMessageId(peerId int, conversationMessageIds []int, extended bool, fields []string, groupId int) (int, []*PersonalMessage, error) {
+func (client *VKClient) GetByConversationMessageId(peerId int, conversationMessageIds []int, extended bool, fields []string, groupId int) (int, []*PersonalMessage, []*User, error) {
 	params := url.Values{}
 	ids := ArrayToStr(conversationMessageIds)
 	params.Add("peer_id", strconv.Itoa(peerId))
@@ -343,11 +343,11 @@ func (client *VKClient) GetByConversationMessageId(peerId int, conversationMessa
 
 	resp, err := client.MakeRequest("messages.getByConversationMessageId", params)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	var message *PersonalMessages
 	json.Unmarshal(resp.Response, &message)
 
-	return message.Count, message.Messages, nil
+	return message.Count, message.Messages, message.Profiles, nil
 }
