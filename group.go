@@ -52,11 +52,12 @@ type GroupMembers struct {
 }
 
 type IsMemBerResultExtended struct {
-	Member		bool `json:"member"`
-	Request		bool `json:"request"`
-	Invation	bool `json:"invation"`
-	CanInvite	bool `json:"can_invite"`
-	CanRecal	bool `json:"can_recall"`
+	UserID    int  `json:"user_id"`
+	Member    bool `json:"member"`
+	Request   bool `json:"request"`
+	Invation  bool `json:"invation"`
+	CanInvite bool `json:"can_invite"`
+	CanRecal  bool `json:"can_recall"`
 }
 
 func (client *VKClient) GroupSendInvite(groupID int, userID int) error {
