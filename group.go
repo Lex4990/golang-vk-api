@@ -51,6 +51,14 @@ type GroupMembers struct {
 	Members []*User `json:"items"`
 }
 
+type IsMemBerResultExtended struct {
+	Member		bool `json:"member"`
+	Request		bool `json:"request"`
+	Invation	bool `json:"invation"`
+	CanInvite	bool `json:"can_invite"`
+	CanRecal	bool `json:"can_recall"`
+}
+
 func (client *VKClient) GroupSendInvite(groupID int, userID int) error {
 	params := url.Values{}
 	params.Set("group_id", strconv.Itoa(groupID))
@@ -123,4 +131,21 @@ func (client *VKClient) GroupGetMembers(group_id, count, offset int) (int, []*Us
 	var res *GroupMembers
 	json.Unmarshal(resp.Response, &res)
 	return res.Count, res.Members, nil
+}
+
+func (client *VKClient) IsMemberByArrayExtended(group_id int, user_ids []int) (*[]IsMemBerResultExtended, error) {
+	params := url.Values{}
+	params.Set("group_id", strconv.Itoa(group_id))
+	params.Set("user_ids", ArrayToStr(user_ids))
+	params.Set("extended", "1")
+	resp, err := client.MakeRequest("groups.isMember", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var result *[]IsMemBerResultExtended
+	if err := json.Unmarshal(resp.Response, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
