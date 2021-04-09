@@ -51,13 +51,13 @@ type GroupMembers struct {
 	Members []*User `json:"items"`
 }
 
-type IsMemBerResultExtended struct {
-	UserID    int  `json:"user_id"`
-	Member    bool `json:"member"`
-	Request   bool `json:"request"`
-	Invation  bool `json:"invation"`
-	CanInvite bool `json:"can_invite"`
-	CanRecal  bool `json:"can_recall"`
+type IsMemberResultExtended struct {
+	UserID    int `json:"user_id"`
+	Member    int `json:"member"`
+	Request   int `json:"request"`
+	Invation  int `json:"invation"`
+	CanInvite int `json:"can_invite"`
+	CanRecal  int `json:"can_recall"`
 }
 
 func (client *VKClient) GroupSendInvite(groupID int, userID int) error {
@@ -134,7 +134,7 @@ func (client *VKClient) GroupGetMembers(group_id, count, offset int) (int, []*Us
 	return res.Count, res.Members, nil
 }
 
-func (client *VKClient) IsMemberByArrayExtended(group_id int, user_ids []int) (*[]IsMemBerResultExtended, error) {
+func (client *VKClient) IsMemberByArrayExtended(group_id int, user_ids []int) (*[]IsMemberResultExtended, error) {
 	params := url.Values{}
 	params.Set("group_id", strconv.Itoa(group_id))
 	params.Set("user_ids", ArrayToStr(user_ids))
@@ -144,7 +144,7 @@ func (client *VKClient) IsMemberByArrayExtended(group_id int, user_ids []int) (*
 		return nil, err
 	}
 
-	var result *[]IsMemBerResultExtended
+	var result *[]IsMemberResultExtended
 	if err := json.Unmarshal(resp.Response, &result); err != nil {
 		return nil, err
 	}
