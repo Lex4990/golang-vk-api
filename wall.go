@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type Wall struct {
@@ -179,12 +180,18 @@ func (client *VKClient) WallPostComment(ownerID int, postID int, message string,
 
 }
 
-func (client *VKClient) WallGetComment(id string, params url.Values) (*WallComments, error) {
-	if params == nil {
-		params = url.Values{}
-	}
+func (client *VKClient) WallGetComment(ownerID, commentID int, isExtended bool, fields []string) (*WallComments, error) {
+	params := url.Values{}
 
-	params.Set("posts", id)
+	params.Set("owner_id", strconv.Itoa(ownerID))
+	params.Set("comment_id", strconv.Itoa(commentID))
+
+	if isExtended == true {
+		params.Set("extended", "1")
+		params.Set("fields", strings.Join(fields, ","))
+	} else {
+		params.Set("extended", "0")
+	}
 
 	resp, err := client.MakeRequest("wall.getComment", params)
 	if err != nil {
