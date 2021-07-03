@@ -63,6 +63,34 @@ type Source struct {
 	Type string `json:"type"`
 }
 
+type WallComments struct {
+	Count    int            `json:"count"`
+	Comments []*WallComment `json:"items"`
+	Profiles []*User        `json:"profiles"`
+	Groups   []*Group       `json:"groups"`
+}
+
+type WallComment struct {
+	ID     int    `json:"id"`
+	FromID int    `json:"from_id"`
+	Date   int    `json:"date"`
+	Text   string `json:"text"`
+	Donut  struct {
+		IsDon       bool   `json:"is_don"`
+		Placeholder string `json:"placeholder"`
+	} `json:"donut"`
+	ReplyToUser int `json:"reply_to_user"`
+	Attachments json.RawMessage `json:"attachments"`
+	ParentsStack []int `json:"parents_stack"`
+	Thread struct{
+		 Count int `json:"count"`
+		 Items json.RawMessage `json:"items"`
+		 CanPost bool `json:"can_post"`
+		 ShowReplyButton bool `json:"show_reply_button"`
+		 GroupsCanPost bool `json:"groups_can_post"`
+	}`json:"thread"`
+}
+
 func (client *VKClient) WallGet(id interface{}, count int, params url.Values) (*Wall, error) {
 	if params == nil {
 		params = url.Values{}
@@ -149,4 +177,26 @@ func (client *VKClient) WallPostComment(ownerID int, postID int, message string,
 
 	return m["comment_id"], nil
 
+}
+
+func (client *VKClient) WallGetComment(id string, params url.Values) (*WallComments, error) {
+	if params == nil {
+		params = url.Values{}
+	}
+
+	params.Set("posts", id)
+
+	resp, err := client.MakeRequest("wall.getComment", params)
+	if err != nil {
+		return nil, err
+	}
+
+	wallComments := &WallComments{}
+	err = json.Unmarshal(resp.Response, &wallComments)
+	if err != nil {
+		return nil, err
+	}
+
+	wallComments.Count = len(wallComments.Comments)
+	return wallComments, nil
 }
